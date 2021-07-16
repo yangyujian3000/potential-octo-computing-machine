@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <!-- <link rel="icon" href="./favicon.ico" type="image/x-icon"> -->
+        <script src="https://unpkg.com/vue@next"></script>
+        <link rel="stylesheet" href="https://unpkg.com/element-plus/lib/theme-chalk/index.css">
+        <script src="https://unpkg.com/element-plus/lib/index.full.js"></script>
+        <title>Embedded Mol* Viewer</title>
+        <style>
+            #app {
+                position: absolute;
+                left: 0px;
+                top: 0px;
+                width: 100%;
+                height: 1000px;
+                
+            }
+            #app1 {
+                position: absolute;
+                left: 20px;
+                top: 20px;
+                width: 500px;
+                height: 500px;
+                
+                /* z-index:-1; */
+                /* float: left; */
+                
+            }
+            #app2 {
+                position: absolute;
+                left: 0px;
+                top: 20px;
+                width: 500px;
+                height: 500px;
+                /* z-index:-1; */
+                /* float: right; */
+                
+            }
+            .ask{
+                position: absolute;
+                left:20px;
+                top:10px;
+            }
+            .left {
+                position: absolute;
+                left: 0px;
+                top: 50px;
+                width: 40px;
+                height: 40px;
+                overflow: visible;
+                /* background-color:red; */
+                /* float: left; */
+                /* background-color: yellow; */
+                /* z-index:-1; */
+                
+            }
+            .right {
+                position: absolute;
+                left: 600px;
+                top: 50px;
+                width: 50px;
+                height: 50px;
+                overflow: visible;
+                /* float: right; */
+                /* background-color:red; */
+                /* z-index:-1; */
+            }
+            
+            #question {
+                position: absolute;
+                top : 570px;
+                left: 520px;
+                width: 80px;
+                height: 50px;
+                /* background-color: rgb(0,255,0); */
+                font-size: small;
+                display: '';  
+                text-align:center;             
+            }
+            #question:hover {
+                border:3px solid;
+            }
+
+            .select_button {
+                position: relative;
+                top: 520px;
+                left: 0px;
+                width: 200px;
+                height: 50px;
+                text-align:center;
+                /* background-color: rgb(0,255,255); */
+                /* font-style: initial;
+                border:2px solid;
+                border-radius : 10px;
+                
+                line-height:25px; */
+            }
+            .select_button:hover{
+                border:4px solid;
+            }
+            
+            .info {
+                position: relative;
+                top: 470px;
+                left: 250px;
+                width: 200px;
+                height: 50px;
+                font-style: normal;
+                /* border:2px solid;
+                border-radius : 10px; */
+                font-size: small;
+                display: 'none';
+                text-align:center;
+                line-height:25px;
+                /* display: 'none'; */
+            }
+            #show_result{
+                align-items: center;
+                text-align:center;
+            }
+            .show_result{
+                position: absolute;
+                top: auto;
+                left: 100px;
+            }
+            #next_cycle_button {
+                width: 300px;
+                height: 100px;
+                left: 0px;
+                position: absolute;
+                top:auto;
+                align-self:center;;
+            }
+            .el-table .warning-row {
+                background: rgb(253, 239, 230);
+            }
+            
+            .el-header {
+                background-color: #B3C0D1;
+                color: #333;
+                line-height: 60px;
+            }
+            
+            .el-aside {
+                color: #333;
+            }
+
+            .el-dropdown-link {
+                cursor: pointer;
+                color: #409EFF;
+            }
+            .el-icon-arrow-down {
+                font-size: 12px;
+            }
+
+            /* .el-table .success-row {
+                background: #f0f9eb;
+            } */
+        </style>
+        <link rel="stylesheet" type="text/css" href="rcsb-molstar.css" />
+    </head>
+    <body >
+        
+        <div id="app">
+            <el-container style="height: 800px; border: 1px solid #eee">
+            <el-header style="text-align: right; font-size: 12px">
+                <div class = 'ask' id = 'ask'></div>
+                <!-- <el-col :span="12">
+                    <el-dropdown @command="handleCommand" id = 'command' trigger="click">
+                        <span class="el-dropdown-link" id = 'el-dropdown-link'>
+                        默认题目数量：3<i class="el-icon-arrow-down el-icon--right"></i>
+                        </span>
+                        
+                        <el-dropdown-menu slot="dropdown">
+                        <el-dropdown-item command="10">10</el-dropdown-item>
+                        <el-dropdown-item command="20">20</el-dropdown-item>
+                        <el-dropdown-item command="50">50</el-dropdown-item>
+                        <el-dropdown-item command="100" divided>100</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown> -->
+                    <!-- <font id = 'result_number_method'>题目数量3，可选：</font> -->
+                    <font id = 'show_question_num'></font>
+                    <el-select name="selectList"  v-model="value" placeholder="题目数量：50">
+                        <el-option
+                            v-for="item in options"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                        </el-option>
+                     </el-select>
+                     <el-button type="info" plain onclick="result_number_method()" width = '20px' height = '20px' id = 'result_number_method_select_button'>确定</el-button>
+                <!-- </el-col> -->
+                <el-button type="danger" plain  class = 'ignore_This_Question' onclick="ignore_This_Question()" width = 180px></el-button>
+            </el-header>
+            <el-main>
+            <div class="left">
+                <div id = 'app1'></div>
+                <div><el-button type="info" plain class = 'select_button' onclick = "select(this)" id = "select_left" style="left: 318px;"></el-button></div>
+                <div class = 'info' style="left:30px;"></div>
+            </div>
+
+
+            
+            <div class="right">
+                <div id = 'app2'></div>
+                <div><el-button type="info" plain class = 'select_button' id = "select_right" onclick="select(this)"></el-button></div>
+                <div class = 'info'></div>
+                </div>
+            </el-main>
+            
+            
+            
+            <div>
+                
+                <el-button type="info" plain onclick="nextquestion()" id = 'question' style="display: none;">question : 1</el-button>
+            </div>
+            
+            </el-container>
+        </div>
+            
+        <!-- <div id = 'result_line' style="position: absolute;top: 650px;left:650px;width: 600px;height: 200px;transform :rotate(90deg);transform-origin:right top;z-index: 999;">
+        </div> -->
+        <!-- <div id = 'result_line' style="position: absolute;top: 700px;left:20px;width: 100%;height: 400px;">
+        </div> -->
+
+        <div id = 'show_result' style="display: none;">
+            <div id = 'the_result'></div>
+            <el-table
+                :data="tableData"
+                border
+                style="width: 100%"
+                :row-class-name="tableRowClassName">
+                <el-table-column
+                prop="question_number"
+                label="题号"
+                width="30">
+                </el-table-column>
+                <el-table-column
+                prop="judge"
+                label="结果"
+                width="80"
+                column-key="date"
+                v-slot = 'scope'
+                :filters="[{text: '正确', value: '正确'}, {text: '错误', value: '错误'}]"
+                :filter-method="filterHandler"
+                >
+                </el-table-column>
+                <el-table-column
+                prop="protein_left"
+                label="蛋白质-左"
+                width="80">
+                </el-table-column>
+                <el-table-column
+                prop="pk_left"
+                label="亲和力"
+                width="80"
+                v-slot = 'scope'>
+                <span v-html="scope.row.pk_left"></span>
+                </el-table-column>
+                <el-table-column
+                prop="logk_left"
+                label="对数"
+                width="80"
+                v-slot = 'scope'>
+                <span v-html="scope.row.logk_left"></span>
+                </el-table-column>
+                <el-table-column
+                prop="ligand_left"
+                label="配体(Ligand)"
+                width="80">
+                </el-table-column>
+                <el-table-column prop="url_left" label="查看" width="80" show-overflow-tooltip v-slot = 'scope' >
+        
+                    <a :href="scope.row.url_left" target="_blank" class="buttonText">查看详情</a>
+                  
+                </el-table-column>
+                <el-table-column
+                prop="protein_right"
+                label="蛋白质-右"
+                width="80">
+                </el-table-column>
+                <el-table-column
+                prop="pk_right"
+                label="亲和力"
+                width="80"
+                v-slot = 'scope'>
+                <span v-html="scope.row.pk_right"></span>
+                </el-table-column>
+                <el-table-column
+                prop="logk_right"
+                label="对数"
+                width="80"
+                v-slot = 'scope'>
+                <span v-html="scope.row.pk_right"></span>
+                </el-table-column>
+                <el-table-column
+                prop="ligand_right"
+                label="配体(Ligand)"
+                width="80">
+                </el-table-column>
+                <el-table-column prop="url_right" label="查看" width="80" show-overflow-tooltip v-slot = 'scope' >
+        
+                    <a :href="scope.row.url_right" target="_blank" class="buttonText">查看详情</a>
+                  
+                </el-table-column>
+            </el-table>
+            <el-footer>
+            
+            <div><el-button type="info" plain id = 'next_cycle_button' onclick = 'next_cycle()' style="display: none;">点我获取新的题目></el-button></div>
+            </el-footer>
+
+        </div>
+        <div id = 'result_line' style="position: absolute;top: 700px;left:20px;width: 100%;height: 400px;">
+        </div>
+            <!-- <script type="text/javascript" src="./molstar.js"></script> -->
+            <!-- <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js"></script> -->
+            <script type="text/javascript" src="./rcsb-molstar.js"></script>
+            <script type="text/javascript" src="./core_data.js"></script>
+            <script type="text/javascript" src="echarts.min.js"></script>
+            <script type="text/javascript">
+                var App,app
+                var ignore_number = 5
+                var main_App = {
+                    methods: {
+                        handleCommand(command) {
+                            result_number = parseInt(command)
+
+                        }
+
+                    },
+                    data() {
+
+                    return {
+                        options: [{
+                            value: '10',
+                            label: '10'
+                            }, {
+                            value: '20',
+                            label: '20'
+                            }, {
+                            value: '50',
+                            label: '50'
+                            }, {
+                            value: '100',
+                            label: '100'
+                            }],
+                            value: ''
+                    }
+                    }
+                };
+                const store = {
+                    //储存字典
+                    setData(key,data){
+                        localStorage.setItem(key,JSON.stringify(data));
+                    },
+                    getData(key){
+                        return JSON.parse(localStorage.getItem(key)||'[]'); 
+                        //如果数据是json，这里写成return JSON.parse(localStorage.getItem(key)||'{}');
+                        
+                    }
+                }
+                var main_app = Vue.createApp(main_App);
+                main_app.use(ElementPlus);
+                main_app.mount('#app');
+                var  viewer1 = new rcsbMolstar.Viewer('app1', {
+                    layoutIsExpanded: false,
+                    layoutShowControls: false,
+                    layoutShowRemoteState: false,
+                    layoutShowSequence: false,
+                    layoutShowLog: false,
+                    layoutShowLeftPanel: false,
+    
+                    viewportShowExpand: true,
+                    viewportShowSelectionMode: false,
+                    viewportShowAnimation: false,
+    
+                    pdbProvider: 'rcsb',
+                    emdbProvider: 'rcsb',
+                });
+                var  viewer2 = new rcsbMolstar.Viewer('app2', {
+                    layoutIsExpanded: false,
+                    layoutShowControls: false,
+                    layoutShowRemoteState: false,
+                    layoutShowSequence: false,
+                    layoutShowLog: false,
+                    layoutShowLeftPanel: false,
+    
+                    viewportShowExpand: true,
+                    viewportShowSelectionMode: false,
+                    viewportShowAnimation: false,
+    
+                    pdbProvider: 'rcsb',
+                    emdbProvider: 'rcsb',
+                });
+
+                var core = sql_data('refined'),ki_str = '<em>K<SUB>i</SUB></em>',kd_str = '<em>K<SUB>d</SUB></em>';
+
+                function url_random(max,min){
+                    var num;                  
+                    num=Math.floor(Math.random() * (max - min) ) + min;//随机数范围是1-100
+                    return num
+
+                }
+
+
+
+                var num = '', protein_info= {};
+
+
+                function redoc(class_name){
+                    //根据类名获取元素
+                        var redoc_elements = document.getElementsByClassName(class_name);
+                        return redoc_elements
+                    }
+
+                
+                function getquestion(count){
+                    // var viewer1 = viewer('1')
+                    // var viewer2 = viewer('2')
+                    //获取题目，count=目前第几题
+                    
+                    var timestamp = (new Date()).valueOf();
+                    var num_k = timestamp%2,pk;        //num_k:0,pki;1:pkd。pk:要在选择按钮上展示的pkd/pki文字信息
+                    // console('num_k'+num_k)
+                    var count_num2 = 0 , count_num2_end = 50  //while循环语句的计数器，大于count_num2_end跳出循环
+                    var different_of_kpd = 1    //kpd/kpi的差小于此数值时会进入while循环   
+                    var true_difference                 
+                    if(num_k==0){pk = '<i>p</i>' + ki_str}else{pk = '<i>p</i>' + kd_str}
+                    var num1 = url_random(Object.keys(core[num_k]).length-1,0),
+                    num2 = url_random(Object.keys(core[num_k]).length-1,0),core_k = core[num_k];
+                    true_difference = Math.abs(parseFloat(core_k[num1]['logKdKi']) - parseFloat(core_k[num2]['logKdKi']))
+
+                    while(true_difference < different_of_kpd){
+                        //pkd/pdi>=2
+                        num2 = url_random(Object.keys(core[num_k]).length-1,0),core_k = core[num_k];
+                        true_difference = Math.abs(parseFloat(core_k[num1]['logKdKi']) - parseFloat(core_k[num2]['logKdKi']));
+                        count_num2 ++
+                        if (count_num2 > count_num2_end){
+                            console.log(count_num2 + 'error:随机题目数量次数超过50次')
+                            different_of_kpd = 0
+                        }
+                    }
+                    console.log('num_k:'+num_k + ' num1:'+num1 + ' num2:' + num2)
+                    if(100 >count > 0){
+                        nextquestion_behaviors()
+                    }
+
+
+                    console.log(core_k[num1]);
+                    console.log(core_k[num2]);
+                    //viewer.loadPdb(core_k[num1]['protein'],{ preset: 'ligandInteraction',kind: 'feature',assemblyId:'bionumber',target: { label_comp_id:core_k[num1]['ligand_name'] }});
+                    protein_info['left'] = core_k[num1] //左边题目的信息
+                    protein_info['right'] = core_k[num2]//右边题目的信息
+                    console.log(core_k[num1]['protein']+' '+core_k[num1]['ligand_name'])
+                    vie1 = viewer1.loadPdbId(core_k[num1]['protein'],{ kind:'feature', preset: 'ligandInteraction',target: { label_comp_id:core_k[num1]['ligand_name'] }});
+                    vie2 = viewer2.loadPdbId(core_k[num2]['protein'],{ kind:'feature', preset: 'ligandInteraction',target: { label_comp_id:core_k[num2]['ligand_name'] }});
+                    document.getElementById('ask').innerHTML = '第' + (count + 1) + '题: 请选出两个蛋白质-配体复合体中结合亲和力更强的复合体（点击下方对应按钮）。'
+                    // document.getElementsByClassName('select_button')[0].innerHTML ="A. " + pk + ' | '+ core_k[num1]['protein'] + ' | ' + core_k[num1]['ligand_name']
+                    // document.getElementsByClassName('select_button')[1].innerHTML ="B. " + pk + ' | '+ core_k[num2]['protein'] + ' | ' + core_k[num2]['ligand_name']
+                    document.getElementsByClassName('select_button')[0].innerHTML ="A " 
+                    document.getElementsByClassName('select_button')[1].innerHTML ="B " 
+                    document.getElementsByClassName('info')[0].innerHTML = 'protein&nbsp:&nbsp ' + core_k[num1]['protein'] +'&nbsp ligand&nbsp:&nbsp ' + core_k[num1]['ligand_name']
+                    document.getElementsByClassName('info')[1].innerHTML = 'protein&nbsp:&nbsp ' + core_k[num2]['protein'] +'&nbsp ligand&nbsp:&nbsp ' + core_k[num2]['ligand_name']
+                    
+                    return[vie1,vie2]
+                    function nextquestion_behaviors(){
+                        viewer1.clear()
+                        viewer2.clear()
+                        document.getElementById('question').innerHTML = "点我<br/>下一题"
+                        document.getElementById('question').style.display = 'none'
+                        document.getElementsByClassName('select_button')[0].setAttribute('onclick','select(this)')    //让选择按钮可用
+                        document.getElementsByClassName('select_button')[1].setAttribute('onclick','select(this)')
+                        document.getElementsByClassName('select_button')[0].style.backgroundColor = '#DCDFE6'
+                        document.getElementsByClassName('select_button')[1].style.backgroundColor = '#DCDFE6'
+                        document.getElementById('question').onclick = 'null'
+                        document.getElementsByClassName('ignore_This_Question')[0].innerHTML = '当无法正常加载时，点此忽略，剩余忽略次数：'+ignore_number
+                        setTimeout(document.getElementById('question').setAttribute('onclick','nextquestion()'),5000)
+                    }
+                }
+                view = getquestion(0)
+                
+                
+                function ignore_This_Question(){
+                    if (ignore_number > 0){
+                        ignore_number --
+                        var question_number = document.getElementById('ask').innerHTML
+                        question_number = parseInt(question_number.split('第')[1].split('题')[0]) - 1
+                        getquestion(question_number)
+                }}
+                function nextquestion(){
+                    //点击下一题按钮
+                    var question_number = document.getElementById('ask').innerHTML
+                    question_number = parseInt(question_number.split('第')[1].split('题')[0])
+                    // document.getElementsByClassName('info')[0].style.display = 'none' //让信息界面消失
+                    // document.getElementsByClassName('info')[1].style.display = 'none' //让信息界面消失
+                    // question_number += 1
+                    view = getquestion(question_number)
+                    question_number += 1
+                    // show_tool_again()
+                }
+                document.addEventListener('click',function(e){
+                    'Toggle Controls Panel'
+                    console.log(e.target.tagName)
+                if(e.target.className == 'msp-icon msp-material-icon'||e.target.title =='Toggle Expanded Viewport' ||e.target.tagName == 'svg'){
+                    //点击放大时将app2隐藏起来，后续可改成将app1/app2隐藏起来
+                    var ele_app1 =  document.getElementsByClassName('msp-viewport-host3d')[0]
+                            if (ele_app1.offsetHeight>550){//判断从属于哪个app
+                                // var strview= e.target.className.split('-')
+                                // if(strview[strview.length-1] == 'on' ){
+                                // if(document.getElementById('app2').style.display == '' ){
+                                    document.getElementById('app2').style.display = 'none'
+                                }
+                                // else if(strview[strview.length-1] == 'off' ){
+                                else{
+                                    document.getElementById('app2').style.display = ''
+                                
+                                };}
+                               
+                })
+                // function display_click_viewport(){
+                //     
+                //     function display(that){
+                //         if (that.title == 'Toggle Expanded Viewport'){
+                //             var ele_app1 =  document.getElementById('app1')
+                //             if (ele_app1.contains(that)){//判断从属于哪个app
+                //                 var strview= that.className.split('-')
+                //                 if(strview[strview.length-1] == 'on' ){
+                //                     document.getElementById('app2').style.display = 'none'
+                //                 }
+                //                 else if(strview[strview.length-1] == 'off' ){
+                //                     document.getElementById('app2').style.display = ''
+                //                 };}
+                //         }
+                //     };
+                //     $(document).on("click", "button[title='Toggle Expanded Viewport']", function(event){
+                //         display(this)
+                //         })
+                // };
+                function view_history(that){
+                    console.log(that.value)
+                };
+                function display_by_id(id,display_control){
+                    for(d in id){
+                        document.getElementById(id[d]).style.display = display_control
+                    }
+                }
+
+                function next_cycle(){
+                    var id_by_next_cycle_on = ['app','ask'], id_by_next_cycle_none = ['next_cycle_button','show_result'];
+                    display_by_id(id_by_next_cycle_on, '');
+                    display_by_id(id_by_next_cycle_none, 'none');
+                    times ++;   //进入到下一次循环
+                    location.replace(document.referrer)
+                }
+
+                const line_data = {
+                    xDataArr(question_number){
+                        var xData = []
+                        if(localStorage['mol_times']){
+                            for (var loc_time = 0; loc_time <= localStorage['mol_times']; loc_time++){
+                                xData.push('第' + (loc_time + 1) + '轮')
+                            }
+
+
+
+                        }
+                        for (var loc_time = 1; loc_time <= question_number; loc_time++){
+                                xData.push('题' + loc_time)
+                            }
+                        return xData
+
+                    },
+                    yDataArr(question_number){
+                        var yData = [],this_data = []
+                        if(localStorage['mol_times']){
+                            for (var loc_time = 0; loc_time <= localStorage['mol_times']; loc_time++){
+                                yData.push(localStorage[''])
+                            }                        
+
+                        }
+                        for (var loc_time = 1; loc_time <= question_number; loc_time++){
+                            this_data.push(select_dict[loc_time])
+                            var right_sum = this_data.filter(function(item){if(item['result'] == 'right'){return item }}).length
+                            yData.push(right_sum/this_data.length)
+
+                            // yData.push(localStorage['mol_accuracy_'+loc_time])
+                        }
+                        return yData
+                    },
+                    yDataArr_move_average(question_number){
+                        //移动平均值
+                        var yData = [];
+                        var result_sum = 0,right_sum = 0;
+                        if(localStorage['mol_times']){
+                            for (var loc_time = 0; loc_time <= localStorage['mol_times']; loc_time++){
+                                var history_dict = []
+                                for(var que = 1;que <= Object.keys(store.getData('mol_storage_' + loc_time)).length;que++){
+                                    history_dict.push(store.getData('mol_storage_' + loc_time)[que])
+                                }
+                                // yData.push(localStorage['mol_accuracy_'+loc_time])
+                                result_sum += Object.keys(store.getData('mol_storage_' + loc_time)).length
+                                var right_select = history_dict.filter(function(item){if(item['result'] == 'right'){return item }})
+                                right_sum += right_select.length
+                                yData.push(right_sum/result_sum);
+                            }                        
+
+                        }
+                        for (var loc_time = 1; loc_time <= question_number; loc_time++){
+                            // this_data.push(select_dict[loc_time])
+                            console.log(question_number,loc_time)
+                            if (select_dict[loc_time]['result'] == 'right'){
+                                right_sum ++
+                            } 
+                            result_sum ++
+                            yData.push(right_sum/result_sum);
+                            // yData.push(this_data.length/this_data.filter(function(item){if(item['result'] == 'right'){return item }}).length)
+                        }
+                        return yData
+                    },
+                    y_accuracy(question_number,amount){
+
+                        var yData = [];
+                        var result_sum = 0,right_sum = 0,temp_list = [],amount_list = [];
+                        if(localStorage['mol_times']){
+                            for (var loc_time = 0; loc_time <= localStorage['mol_times']; loc_time++){
+                                var history_dict = []
+                                for(var que = 1;que <= Object.keys(store.getData('mol_storage_' + loc_time)).length;que++){
+                                    history_dict.push(store.getData('mol_storage_' + loc_time)[que])
+                                    temp_list.push(store.getData('mol_storage_' + loc_time)[que])
+                                }
+                                // yData.push(localStorage['mol_accuracy_'+loc_time])
+                                result_sum += Object.keys(store.getData('mol_storage_' + loc_time)).length
+                                var right_select = history_dict.filter(function(item){if(item['result'] == 'right'){return item }})
+                                right_sum += right_select.length
+                                yData.push('');
+                                
+                            }                        
+
+                        }
+                        if((result_sum + Object.keys(select_dict).length) >= amount){
+                            if (result_sum > amount){
+                                for (var ele_re = 1;ele_re <= amount;ele_re ++){
+                                    amount_list.push(temp_list[(result_sum - ele_re)])
+                                }
+                            }
+                            else{amount_list = temp_list}
+                            for (var loc_time = 1; loc_time <= question_number; loc_time++){
+                                // temp_list.push(select_dict[loc_time])
+                                if ((result_sum + loc_time) < amount){
+                                    amount_list.push(select_dict[loc_time])
+                                    yData.push('')
+                                }
+                                else if ((result_sum + loc_time) == amount){
+                                    amount_list.push(select_dict[loc_time])
+                                    right_sum = amount_list.filter(function(item){if(item['result'] == 'right'){return item }}).length
+                                    yData.push(right_sum/amount)
+                                }
+                                else if((result_sum + loc_time) > amount){
+                                    amount_list.splice(0,1)
+                                    amount_list.push(select_dict[loc_time])
+                                    right_sum = amount_list.filter(function(item){if(item['result'] == 'right'){return item }}).length
+                                    yData.push(right_sum/amount)
+                                }
+
+                            }
+                            return yData
+                        }
+                    }
+                }
+
+
+
+                function data_result(question_number){
+                    var right_count = 0
+                    var show_table = document.getElementById('show_result'), tr, td, id_by_result_none = ['app','ask','question'],id_by_result_on = ['next_cycle_button'];
+                    var tihs_times = times,td_dict = {},tr_list = []
+                    if(!localStorage['mol_times']){
+                        localStorage.setItem('mol_times',0)
+                        tihs_times = 0
+                    }
+                    else{
+                        tihs_times = parseInt(localStorage['mol_times']) + 1
+                    }
+                    store.setData('mol_storage_' + tihs_times ,select_dict) //贮藏storage
+
+                    show_table.style.display = ''
+                    display_by_id(id_by_result_none, 'none')  //隐藏viewer界面
+                    display_by_id(id_by_result_on, '') 
+                    for(var i = 1; i <= question_number; i++){
+                        td_dict = {}
+                        // var right_number = 0;
+                        // tr  =  document.createElement( "tr" );
+                        // tr.setAttribute('onclick','view_history(this)');
+                        // tr.value = select_dict[i]['left']['protein'] + ',' + select_dict[i]['left']['ligand_name']+ ',' + select_dict[i]['right']['ligand_name']+ ',' + select_dict[i]['right']['ligand_name']
+                        // 'protein_left','pk_left','logk_left','ligand_left','protein_right','pk_right','logpk_right','ligand_right'
+                        
+                        for (l_or_r  in ['left','right']){    
+                            //for (info_ele in  select_dict[i][['left','right'][l_or_r]]){
+                            td_dict['protein_'+['left','right'][l_or_r]] = select_dict[i][['left','right'][l_or_r]]['protein'];
+                            if(select_dict[i][['left','right'][l_or_r]]['ki']){
+                                td_dict['pk_'+['left','right'][l_or_r]] =ki_str + "&nbsp=&nbsp" + select_dict[i][['left','right'][l_or_r]]['ki'];
+                                td_dict['logk_'+['left','right'][l_or_r]] ='-log' + ki_str + "&nbsp=&nbsp" + select_dict[i][['left','right'][l_or_r]]['logKdKi'];
+                            }
+                            else{
+                                td_dict['pk_'+['left','right'][l_or_r]] =kd_str + "&nbsp=&nbsp" +  select_dict[i][['left','right'][l_or_r]]['kd'];
+                                td_dict['logk_'+['left','right'][l_or_r]] ='-log' + kd_str + "&nbsp=&nbsp" + select_dict[i][['left','right'][l_or_r]]['logKdKi'];
+                            
+                            }
+                            // td_dict['logk_'+['left','right'][l_or_r]] = select_dict[i][['left','right'][l_or_r]]['logKdKi']
+                            td_dict['ligand_'+['left','right'][l_or_r]] = select_dict[i][['left','right'][l_or_r]]['ligand_name']
+                            td_dict['url_'+['left','right'][l_or_r]] = 'https://www.rcsb.org/3d-view/' + select_dict[i][['left','right'][l_or_r]]['protein'] + '?preset=ligandInteraction&sele='+select_dict[i][['left','right'][l_or_r]]['ligand_name']
+
+                        }
+                        td_dict['question_number'] = i
+                        if (select_dict[i]['result'] == 'right'){
+                            td_dict['judge'] = '正确'
+                            right_count += 1
+                        }
+                        else{
+                            td_dict['judge'] = '错误'
+                        }
+                        tr_list.push(td_dict)
+                        // temp_td_dict = {}
+                        // for (key in Object(td_dict)){
+                        //     temp_td_dict
+
+                        // }
+                        
+                        // if (select_dict[i]['result'] == 'right'){
+                        // if ( storage_dict[tihs_times][i]['result'] == 'right'){
+                        //     
+                            
+                        // }
+                        // else{tr.style.color = 'red'}
+                        // show_table.appendChild(tr)
+
+
+                    }
+                    // try{
+                    //     app.unmount()
+                    // }
+                    // catch(err){
+                    //     console.log(err)
+                    // }
+                    // else{
+                    //     app.updated
+                    // }
+                    var history_result =  document.getElementById('the_result')    //展示答题准确率
+                    var result_persent =  ((right_count/question_number).toFixed(2))*100
+                    localStorage.setItem('mol_accuracy_' + tihs_times , result_persent)   //储存准确率
+                    history_result_content = '准确率: ' + result_persent +'%'
+                    history_result.innerHTML = history_result_content
+                    console.log('history_result_content')
+                    localStorage.setItem('mol_times',tihs_times)
+                        
+                        
+                        const App = {
+                        methods: {
+                            tableRowClassName({row}) {
+                                if (row.judge == '错误') {
+                                return 'warning-row';
+                                }
+                                return '';
+                            },
+                            filterHandler(value, row, column) {
+                                const property = column['property'];
+                                return row[property] === value;
+                            }
+                            },
+                        data() {
+                                // tableData = getdata()
+                                return {
+                                    tableData:tr_list}
+                                }
+                            }
+                    const app = Vue.createApp(App);
+                    app.use(ElementPlus);
+                    app.mount("#show_result");
+                    document.getElementById("result_line").style.position = 'relative'
+                    document.getElementById("result_line").style.top = '20px'
+                }
+                    
+                        
+                // function result_line(){
+                //     var mCharts = echarts.init(document.getElementById("result_line"))
+                    
+                // }
+
+
+                var select_dict = {},times = 1,storage_dict = {};
+                function select(that){
+                    var seleted = '',unseleted = '',k1 = '',k2 = '';
+                    function result(judge){
+                        //修改结果样式函数
+                        // console.log(that.id)
+                        var result_color = '#F56C6C',result_info = judge
+                        document.getElementsByClassName('select_button')[0].onclick = function(){};    //让选择按钮暂时不可用
+                        document.getElementsByClassName('select_button')[1].onclick = function(){};
+                        if (judge == 'right'){result_color = '#67C23A'}
+                        for(var select_num = 0; select_num < document.getElementsByClassName('select_button').length;select_num++){
+                            var select_button = document.getElementsByClassName('select_button')[select_num]
+                            select_button.style.backgroundColor = result_color
+                            select_button.innerHTML = result_info
+                        }
+                        document.getElementById('question').style.display = ''//下一题按钮出现
+                        for(var show = 0;show < document.getElementsByClassName('info').length;show++){
+                            var show_posi = 'left', show_k = ki_str, show_sub_k = 'ki';
+                            if (show == 1){var show_posi = 'right'}
+                            if ('kd' in protein_info[show_posi]){show_k = kd_str;show_sub_k = 'kd'}
+                            //'protein':protein,'resolution':resolution,'year':year,'logKdKi':logKdKi,'ki':ki,'reference':reference,'ligand_name':ligand_name
+                            // var show_info = 'protein&nbsp:&nbsp ' + protein_info[show_posi]['protein']+'&nbsp ligand&nbsp:&nbsp ' + protein_info[show_posi]['ligand_name']
+                            var show_info = 'protein&nbsp:&nbsp ' + protein_info[show_posi]['protein']+'&nbsp ligand&nbsp:&nbsp ' + protein_info[show_posi]['ligand_name'] + '<br />'+ '<i>p</i>' +show_k + '&nbsp:&nbsp ' + protein_info[show_posi]['logKdKi'] + '&nbsp;&nbsp'+show_k + '&nbsp:&nbsp ' + protein_info[show_posi][show_sub_k];
+                            document.getElementsByClassName('info')[show].innerHTML = show_info
+                            // document.getElementsByClassName('info')[show].style.display = ''
+                        }
+                        storage(judge , protein_info)
+                        var question_number = parseInt(document.getElementById('ask').innerHTML.split('第')[1].split('题')[0])
+                        var line_option = {
+                            tooltip: { show: true },
+                            xAxis:{
+                                type:'category',
+                                data:line_data.xDataArr(question_number)
+                            },
+                            yAxis:{
+                                type:'value'
+                            },
+                            series:[
+                                {
+                                    type:'line',
+                                    data:line_data.yDataArr(question_number),
+                                    name:'本轮答题准确率',
+                                    // color:'red',
+                                    smooth:true,
+                                    color: 'red',
+                                },
+                                {
+                                    type:'line',
+                                    data:line_data.yDataArr_move_average(question_number),
+                                    smooth:true,
+                                    name:'总答题准确率',
+                                    color: 'pink',
+                                    lineStyle:{
+                                        type: 'dashed'},
+                                    },
+                                {
+                                type:'line',
+                                data:line_data.y_accuracy(question_number,50),
+                                smooth:true,
+                                name:'50题准确率',
+                                lineStyle:{
+                                    type: 'dashed'},
+                                },
+                                {type:'line',
+                                data:line_data.y_accuracy(question_number,100),
+                                smooth:true,
+                                name:'100题准确率',
+                                lineStyle:{
+                                    type: 'dashed'},
+                                },
+                            ]
+                        }
+                        var mCharts = echarts.init(document.getElementById("result_line"))
+                        mCharts.setOption(line_option)
+                        console.log('echarts')
+                    }
+                    function storage(judge,protein_info){
+                        var question_number = parseInt(document.getElementById('ask').innerHTML.split('第')[1].split('题')[0])
+                        var this_result = {}
+                        this_result['left'] = protein_info['left'] ; this_result['right'] = protein_info['right']
+                        this_result['result'] = judge
+                        // this_result['question'] = question_number
+                        select_dict[question_number] =  this_result   
+                        storage_dict[times] = select_dict //方便读取历史记录                     
+                    }
+                    var seleted_protein = that.innerHTML.split('<br>')[1]
+                    // if (seleted_protein.split(' | ')[0] == protein_info['left']['protein']){
+                    if (that.id == 'select_left'){
+                        seleted = protein_info['left']
+                        unseleted = protein_info['right']
+                    }
+                    // else if(that.innerHTML.split('<br>')[0] == protein_info['right']['protein']){
+                    else if(that.id == 'select_right'){
+                        seleted = protein_info['right']
+                        unseleted = protein_info['left']
+                    };
+                    k1 = seleted['logKdKi']
+                    k2 = unseleted['logKdKi']
+
+                    if (parseFloat(k1) >= parseFloat(k2)){result('right')} else{result('wrong')}
+
+                    document.getElementById('question').style.display = '';
+
+                    
+                    var question_number = parseInt(document.getElementById('ask').innerHTML.split('第')[1].split('题')[0])
+                    if(question_number >= result_number){
+                        //统计阶段
+                        data_result(question_number)
+                    }
+
+                }
+                // window.onload = display_click_viewport()
+                var result_number = 3//要统计的题目数量
+                if (localStorage['mol_result_number']){
+                    result_number = localStorage['mol_result_number']
+                    document.getElementsByName('selectList')[0].placeholder = '题目数量：' + result_number
+                }
+                function result_number_method(){
+                    result_number = document.getElementsByName('selectList')[0].value
+                    localStorage.setItem('mol_result_number',result_number)
+                    // document.getElementsByName('selectList')[0].placeholder = '当前题目数量：' + result_number
+                    document.getElementById('result_number_method_select_button').style.display = 'none'
+                    document.getElementsByName('selectList')[0].style.display = 'none'
+                    document.getElementById('show_question_num').innerHTML = '题目数量：' + result_number
+                    
+                    // document.getElementById('selectList').style.display = ''
+                }
+            
+                </script>
+        
+    </body>
+</html>
