@@ -4,9 +4,9 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
         <!-- <link rel="icon" href="./favicon.ico" type="image/x-icon"> -->
-        <script src="https://unpkg.com/vue@next"></script>
-        <link rel="stylesheet" href="https://unpkg.com/element-plus/lib/theme-chalk/index.css">
-        <script src="https://unpkg.com/element-plus/lib/index.full.js"></script>
+        <script src="vue.global.js"></script>
+        <link rel="stylesheet" href="element-plus_lib_theme-chalk_index.css">
+        <script src="element_index.full.js"></script>
         <title>Embedded Mol* Viewer</title>
         <style>
             #app {
@@ -901,7 +901,7 @@
 
                 }
                 // window.onload = display_click_viewport()
-                var result_number = 3//要统计的题目数量
+                var result_number = 50//要统计的题目数量
                 if (localStorage['mol_result_number']){
                     result_number = localStorage['mol_result_number']
                     document.getElementsByName('selectList')[0].placeholder = '题目数量：' + result_number
